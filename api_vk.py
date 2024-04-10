@@ -37,8 +37,8 @@ def post_info(response):
             last_name = response.json()["response"]["profiles"][0]["last_name"]
             if not (bool(first_name) and bool(last_name)):
                 # При репосте из группы не всегда однозначно заносятся поля
-                first_name = response.json()["response"]["profiles"][1]["first_name"]
-                last_name = response.json()["response"]["profiles"][1]["last_name"]
+                first_name = response.json()["response"]["profiles"][-1]["first_name"]
+                last_name = response.json()["response"]["profiles"][-1]["last_name"]
 
             for i in range(cnt):
                 response_item = response.json()["response"]["items"][i]
