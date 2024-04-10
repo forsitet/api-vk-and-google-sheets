@@ -35,10 +35,21 @@ def post_info(response):
         if cnt > 0:
             first_name = response.json()["response"]["profiles"][0]["first_name"]
             last_name = response.json()["response"]["profiles"][0]["last_name"]
+            if not (bool(first_name) and bool(last_name)):
+                # При репосте из группы не всегда однозначно заносятся поля
+                first_name = response.json()["response"]["profiles"][1]["first_name"]
+                last_name = response.json()["response"]["profiles"][1]["last_name"]
+
             for i in range(cnt):
                 response_item = response.json()["response"]["items"][i]
-
-                view = response_item["views"]["count"]
+                view = 0
+                # У клипов берём просмотры по клипу
+                if (bool(response_item["attachments"]) and
+                        response_item["attachments"][0]["type"] == "video" and
+                        "Клип" in response_item["attachments"][0]["video"]["title"]):
+                    view = response_item["attachments"][0]["video"]["views"]
+                if view == 0:  # Выполняется, если условие выше не выполнилось или у нас недостаточно прав для просмотра информации по клипу
+                    view = response_item["views"]["count"]
                 id_post = response_item["id"]
                 id_user = response_item["from_id"]
                 url_post = f"https://vk.com/wall{id_user}_{id_post}"
