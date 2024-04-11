@@ -7,7 +7,7 @@ import time
 import os
 from dotenv import load_dotenv
 import schedule
-from date import POST_AFTER_DATE
+from data import POST_AFTER_DATE, NAME_TABLE_CONTENT, NAME_TABLE_SUM_VIEW
 
 
 def configurate_google_sheet():
@@ -75,6 +75,14 @@ def get_tags():
     return tags["values"][0]
 
 
+def del_sheets(name_table):
+    service, spreadsheet_id = configurate_google_sheet()
+    service.spreadsheets().values().clear(
+        spreadsheetId=spreadsheet_id,
+        range=name_table
+    ).execute()
+
+
 def send_sheets(data, name_table):
     service, spreadsheet_id = configurate_google_sheet()
     values = service.spreadsheets().values().batchUpdate(
@@ -91,6 +99,8 @@ def send_sheets(data, name_table):
 
 
 def parser():
+    name_table_content = NAME_TABLE_CONTENT + "!A:E"
+    name_table_sum_view = NAME_TABLE_SUM_VIEW + "!A:C"
     load_dotenv()
     version = os.getenv("VERSION")
     token = os.getenv("TOKEN")
@@ -107,8 +117,10 @@ def parser():
         res_info = post_info(response)
         rows.extend(res_info[0])
         rows_sum_view.extend(res_info[1])
-    send_sheets(rows, "'Контент'!A:E")
-    send_sheets(rows_sum_view, "'Итог'!A:C")
+
+    del_sheets(name_table_content)
+    send_sheets(rows, name_table_content)
+    send_sheets(rows_sum_view, name_table_sum_view)
 
 
 def main():
