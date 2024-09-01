@@ -31,36 +31,40 @@ def post_info(response):
         rows = []
         rows_sum_views = []
         sum_view = 0
-        cnt = response.json()["response"]["count"]
-        if cnt > 0:
-            first_name = response.json()["response"]["profiles"][0]["first_name"]
-            last_name = response.json()["response"]["profiles"][0]["last_name"]
-            if not (bool(first_name) and bool(last_name)):
-                # При репосте из группы не всегда однозначно заносятся поля
-                first_name = response.json()["response"]["profiles"][-1]["first_name"]
-                last_name = response.json()["response"]["profiles"][-1]["last_name"]
+        try:
+            cnt = response.json()["response"]["count"]
+        except:
+            print(f"У {response.json()["error"]["request_params"][0]["value"]} нет постов")
+        else:
+            if cnt > 0:
+                first_name = response.json()["response"]["profiles"][0]["first_name"]
+                last_name = response.json()["response"]["profiles"][0]["last_name"]
+                if not (bool(first_name) and bool(last_name)):
+                    # При репосте из группы не всегда однозначно заносятся поля
+                    first_name = response.json()["response"]["profiles"][-1]["first_name"]
+                    last_name = response.json()["response"]["profiles"][-1]["last_name"]
 
-            for i in range(cnt):
-                response_item = response.json()["response"]["items"][i]
-                view = 0
-                # У клипов берём просмотры по клипу
-                if (bool(response_item["attachments"]) and
-                        response_item["attachments"][0]["type"] == "video" and
-                        "Клип" in response_item["attachments"][0]["video"]["title"]):
-                    view = response_item["attachments"][0]["video"]["views"]
-                if view == 0:  # Выполняется, если условие выше не выполнилось или у нас недостаточно прав для просмотра информации по клипу
-                    view = response_item["views"]["count"]
-                id_post = response_item["id"]
-                id_user = response_item["from_id"]
-                url_post = f"https://vk.com/wall{id_user}_{id_post}"
-                post_date = response_item["date"]
-                post_date = datetime.fromtimestamp(int(post_date))
-                if post_date >= post_after_date:
-                    rows.append((last_name, first_name, url_post, view, post_date.strftime('%d.%m.%Y')))
-                    sum_view += int(view)
-            rows_sum_views.append((last_name, first_name, sum_view))
-    except:
-        print(f"Ошибка у {response.json()["error"]["request_params"][0]["value"]}")
+                for i in range(cnt):
+                    response_item = response.json()["response"]["items"][i]
+                    view = 0
+                    # У клипов берём просмотры по клипу
+                    if (bool(response_item["attachments"]) and
+                            response_item["attachments"][0]["type"] == "video" and
+                            "Клип" in response_item["attachments"][0]["video"]["title"]):
+                        view = response_item["attachments"][0]["video"]["views"]
+                    if view == 0:  # Выполняется, если условие выше не выполнилось или у нас недостаточно прав для просмотра информации по клипу
+                        view = response_item["views"]["count"]
+                    id_post = response_item["id"]
+                    id_user = response_item["from_id"]
+                    url_post = f"https://vk.com/wall{id_user}_{id_post}"
+                    post_date = response_item["date"]
+                    post_date = datetime.fromtimestamp(int(post_date))
+                    if post_date >= post_after_date:
+                        rows.append((last_name, first_name, url_post, view, post_date.strftime('%d.%m.%Y')))
+                        sum_view += int(view)
+                rows_sum_views.append((last_name, first_name, sum_view))
+    except Exception as err:
+        print(f"Ошибка у {response.json()["error"]["request_params"][0]["value"]} {err}")
 
     return rows, rows_sum_views
 
@@ -120,6 +124,7 @@ def parser():
 
     del_sheets(name_table_content)
     send_sheets(rows, name_table_content)
+    del_sheets(name_table_sum_view)
     send_sheets(rows_sum_view, name_table_sum_view)
 
 
