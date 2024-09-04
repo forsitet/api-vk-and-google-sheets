@@ -22,7 +22,7 @@ def configurate_google_sheet():
     return service, spreadsheet_id
 
 
-def post_info(response):
+def post_info(response, domain):
     """
     Фильтрует последние 100 постов на стене по хэштегу #АмбассадорыVK
     """
@@ -63,6 +63,8 @@ def post_info(response):
                         rows.append((last_name, first_name, url_post, view, post_date.strftime('%d.%m.%Y')))
                         sum_view += int(view)
                 rows_sum_views.append((last_name, first_name, sum_view))
+            else:
+                 print(f"У {domain} нет постов")
     except Exception as err:
         print(f"Ошибка у {response.json()["error"]["request_params"][0]["value"]} {err}")
 
@@ -118,7 +120,7 @@ def parser():
         params = {"domain": domain, "v": version, "access_token": token, "query": "#АмбассадорыVK", "owners_only": 1,
                   "count": 100, "extended": 1, "lang": 0}
         response = requests.get(url, params=params)
-        res_info = post_info(response)
+        res_info = post_info(response, domain)
         rows.extend(res_info[0])
         rows_sum_view.extend(res_info[1])
 
