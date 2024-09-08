@@ -3,3 +3,4 @@
 /key.json
 .env
 /__pycache__
+session_name.session
