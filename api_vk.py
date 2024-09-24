@@ -26,7 +26,7 @@ def configurate_google_sheet():
     return service, spreadsheet_id
 
 
-def post_info_vk(response, amb):
+def post_info_vk(response, amb, source):
     """
     Фильтрует последние 100 постов на стене по хэштегу #АмбассадорыVK
     """
@@ -38,7 +38,7 @@ def post_info_vk(response, amb):
         try:
             cnt = response.json()["response"]["count"]
         except:
-            print(f"У {amb.second_name} {amb.first_name} нет постов (cnt=0)")
+            print(f"[{source}] У {amb.second_name} {amb.first_name} нет постов (cnt=0)")
         else:
             if cnt > 0 and cnt:
                 for i in range(cnt):
@@ -62,9 +62,9 @@ def post_info_vk(response, amb):
                 if sum_view > 0:
                     rows_sum_views.append([amb.second_name, amb.first_name, sum_view])
             else:
-                 print(f"У {amb.second_name} {amb.first_name} нет постов")
+                 print(f"[{source}] У {amb.second_name} {amb.first_name} нет постов")
     except Exception as err:
-        print(f"Ошибка у {response.json()["error"]["request_params"][0]["value"]} [post_info_vk] {err}")
+        print(f"[{source}] Ошибка у {response.json()["error"]["request_params"][0]["value"]} [post_info_vk] {err}")
 
     if not(rows_sum_views):
         rows_sum_views.append([amb.second_name, amb.first_name, 0])
@@ -72,6 +72,9 @@ def post_info_vk(response, amb):
 
 
 def post_info_tg(channel_username, amb):
+    """
+    Фильтрует последние 400 постов на стене по хэштегу #АмбассадорыVK
+    """
     api_id = os.getenv("API_ID_TG")
     api_hash = os.getenv("API_HASH_TG")
     rows = []
@@ -162,21 +165,25 @@ def parser():
         params = {"owner_id": amb.vk, "v": version, "access_token": token, "query": TAG, "owners_only": 1,
                   "count": 100, "extended": 1, "lang": 0}
         response = requests.get(url, params=params)
-        res_info_vk = post_info_vk(response, amb)
+        res_info_vk = post_info_vk(response, amb, "Профиль")
         rows.extend(res_info_vk[0])
 
         if amb.tg != "":
-            res_info_tg = post_info_tg(amb.tg.replace("https://t.me/", ""), amb)
-            res_info_vk[1][0][2] += res_info_tg[1]
-            rows.extend(res_info_tg[0])
+            links = amb.tg.split("\n")
+            for link in links:
+                res_info_tg = post_info_tg(link.strip().replace("https://t.me/", ""), amb)
+                res_info_vk[1][0][2] += res_info_tg[1]
+                rows.extend(res_info_tg[0])
 
         if amb.vk_group != "":
-            params = {"domain": amb.vk_group.replace("https://vk.com/", ""), "v": version, "access_token": token, "query": TAG, "owners_only": 1,
-                  "count": 100, "extended": 1, "lang": 0}
-            response = requests.get(url, params=params)
-            res_info_vk_group = post_info_vk(response, amb)
-            rows.extend(res_info_vk_group[0])
-            res_info_vk[1][0][2] += res_info_vk_group[1][0][2]
+            links = amb.vk_group.split("\n")
+            for link in links:
+                params = {"domain": link.strip().replace("https://vk.com/", ""), "v": version, "access_token": token, "query": TAG, "owners_only": 1,
+                    "count": 100, "extended": 1, "lang": 0}
+                response = requests.get(url, params=params)
+                res_info_vk_group = post_info_vk(response, amb, "Группа")
+                rows.extend(res_info_vk_group[0])
+                res_info_vk[1][0][2] += res_info_vk_group[1][0][2]
             
         rows_sum_view.extend(res_info_vk[1])
     del_sheets(name_table_content)
