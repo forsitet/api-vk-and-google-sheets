@@ -161,7 +161,7 @@ def parser():
     rows_sum_view = [("Фамилия амбассадора", "Имя амбассадора", "Суммарный охват")]
     ambs = get_ambs_info()
     for amb in ambs:
-        time.sleep(0.4)
+        time.sleep(0.7)
         params = {"owner_id": amb.vk, "v": version, "access_token": token, "query": TAG, "owners_only": 1,
                   "count": 100, "extended": 1, "lang": 0}
         response = requests.get(url, params=params)
