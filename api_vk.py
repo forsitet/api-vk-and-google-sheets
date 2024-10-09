@@ -161,7 +161,7 @@ def parser():
     rows_sum_view = [("Фамилия амбассадора", "Имя амбассадора", "Суммарный охват")]
     ambs = get_ambs_info()
     for amb in ambs:
-        time.sleep(0.7)
+        time.sleep(1)
         params = {"owner_id": amb.vk, "v": version, "access_token": token, "query": TAG, "owners_only": 1,
                   "count": 100, "extended": 1, "lang": 0}
         response = requests.get(url, params=params)
@@ -184,7 +184,6 @@ def parser():
                 res_info_vk_group = post_info_vk(response, amb, "Группа")
                 rows.extend(res_info_vk_group[0])
                 res_info_vk[1][0][2] += res_info_vk_group[1][0][2]
-                time.sleep(0.2)
             
         rows_sum_view.extend(res_info_vk[1])
     del_sheets(name_table_content)
