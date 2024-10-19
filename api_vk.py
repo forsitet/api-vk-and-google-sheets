@@ -37,8 +37,8 @@ def post_info_vk(response, amb, source):
         sum_view = 0
         try:
             cnt = response.json()["response"]["count"]
-        except:
-            print(f"[{source}] У {amb.second_name} {amb.first_name} нет постов (cnt=0)")
+        except Exception as err:
+            print(f"[{source}] У {amb.second_name} {amb.first_name} нет постов (cnt=0){[err]}")
         else:
             if cnt > 0 and cnt:
                 for i in range(cnt):
